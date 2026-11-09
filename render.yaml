@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: bot-make-by-le-nhan
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: OPENAI_KEY
+        sync: false
+      - key: GEMINI_KEY
+        sync: false
+      - key: TELE_TOKEN
+        sync: false
+      - key: TELE_CHAT_ID
+        sync: false
+    disk:
+      name: bot-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

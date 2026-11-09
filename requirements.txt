@@ -1,0 +1,6 @@
+zlapi
+flask
+requests
+qrcode[pil]
+Pillow
+psutil
