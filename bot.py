@@ -1586,7 +1586,11 @@ def main():
             print(f"[WARN] Session load: {e}")
 
     # Tạo bot instance
-    bot = LENhanBot(imei or "", cookies or "")
+    # Tạo giá trị mặc định nếu chưa có session
+imei_val = imei if imei else "YOUR_IMEI_HERE"
+cookies_val = cookies if cookies else {}
+
+bot = LENhanBot(imei=imei_val, session_cookies=cookies_val)
 
     # Background threads
     threading.Thread(target=run_scheduler, args=(bot,), daemon=True).start()
