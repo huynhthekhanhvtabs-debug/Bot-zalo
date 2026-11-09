@@ -1570,73 +1570,63 @@ def main():
     global _zalo_live
     os.makedirs("data", exist_ok=True)
 
-    # Flask trước — Render cần port bind trong vài giây
+    # 1. Khởi động Flask (để Render không báo lỗi port)
     threading.Thread(target=run_flask, daemon=True).start()
     print(f"[INFO] Flask ::{PORT}")
-    time.sleep(2)  # chờ Flask bind xong
+    time.sleep(2)
 
-    imei = cookies = None
-    if os.path.exists(SESSION_PATH):
+    # 2. Đọc danh sách tài khoản từ file accounts.json
+    accounts = []
+    if os.path.exists("accounts.json"):
         try:
-            sess    = json.load(open(SESSION_PATH))
-            imei    = sess.get("imei")
-            cookies = sess.get("cookies")
-            print("[INFO] Session loaded")
-        except Exception as e:
-            print(f"[WARN] Session load: {e}")
-
-    # Tạo bot instance
-    # Tạo giá trị mặc định nếu chưa có session
-    imei_val = imei if imei else "7675d59b5e84e0a8"
-
-    cookies_str = '{"nl_b04af40bb0e193acf8a9877592394ada": "tzaoLC8i6lt4rp5Jp2mG_ihNEKpNTdQxcz0R1penVG", "zpdid": "41BuarR-gJKQ6f6QMFR2DXqKaP1R-C8x", "zlogin_session": "kW4JGLyjCnIxFnDDLXTbH-Tj24DL46j7xMuJLGHJPL-cBGb15rDeNwOf1K4NKNCC", "_zlang": "vn", "zpsid": "eMKnVcAlVqAZUYmFHQv56yaWJKXUhKSRoo9NIL-sNskjIpXdI9rJIQPn67rYvcSikYe90ot31HAxC0m0TyC6KgyySm5Cuo81Xc1G5MRlLp-r60jeOivWHai", "__zi": "3000.QOBlzDCV2uGerkFzm0LGqM7LuVt21nZGOTcf_iK96DjWsQ_q.1", "zpw_sek": "IUhW.460574075.a0.kgONda0L4ut3O9RWcQtb-yEFW92QbyUFo_wCkihfexVYsxAX-lVEh-6VaT3vaDZPnOjYIBT0dI0OhEEKISVb-m"}'
-
-    cookies_val = cookies if cookies else json.loads(cookies_str)
-
-    bot = LENhanBot("", "", imei=imei_val, session_cookies=cookies_val)
-
-    # Background threads
-    threading.Thread(target=run_scheduler, args=(bot,), daemon=True).start()
-    threading.Thread(target=tele_poll,     args=(bot,), daemon=True).start()
-    threading.Thread(target=dash_refresh,              daemon=True).start()
-
-    if imei_val and cookies_val:
-        _zalo_live = True
-        tele_text(
-            f"✅ <b>{BOT_NAME}</b> online!\n"
-            f"👑 {OWNER_NAME}  |  v{VERSION}\n"
-            f"🔑 Đăng nhập bằng Cookies thành công.",
-            reply_markup=kb_main()
-        )
-        print("[INFO] Listening (session)...")
-        try:
-            bot.listen()
-        except Exception as e:
-            print(f"[ERR] listen: {e}")
-            tele_text(f"⚠️ Session hết hạn: {e}\nĐang lấy QR mới...")
-            _zalo_live = False
-            # xoá session cũ hỏng
-        try:
-            os.remove(SESSION_PATH)
+            accounts = json.load(open("accounts.json"))
         except:
-            pass
-            _do_qr_login(bot)
-            # giữ process sống
-            while True: time.sleep(60)
+            print("[WARN] Lỗi đọc accounts.json, dùng mặc định 1 tài khoản.")
+            accounts = [{"name": "main"}]
     else:
-        # Chạy QR login trong thread để Flask không block
-        threading.Thread(target=_do_qr_login, args=(bot,), daemon=True).start()
-        # Chờ login xong rồi listen
-        while not _zalo_live:
-            time.sleep(2)
-        print("[INFO] Listening (after QR)...")
-        try:
-            bot.listen()
-        except Exception as e:
-            print(f"[ERR] listen after QR: {e}")
-            tele_text(f"❌ Lỗi listen: {e}")
-        # giữ process sống dù listen crash
-        while True: time.sleep(60)
+        accounts = [{"name": "main"}]
+
+    bots = []
+
+    # 3. Khởi tạo và đăng nhập từng tài khoản bằng QR
+    for acc in accounts:
+        acc_name = acc.get("name", "bot")
+        session_file = f"data/session_{acc_name}.json"
+        
+        imei, cookies = None, None
+        if os.path.exists(session_file):
+            try:
+                sess = json.load(open(session_file))
+                imei = sess.get("imei")
+                cookies = sess.get("cookies")
+                print(f"[INFO] Đã load session cho {acc_name}")
+            except Exception as e:
+                print(f"[WARN] Lỗi load session {acc_name}: {e}")
+
+        # Khởi tạo bot
+        bot = LENhanBot(imei or "", cookies or "")
+        
+        # Nếu chưa có session, gọi hàm lấy QR
+        if not (imei and cookies):
+            print(f"[INFO] Chưa có session cho {acc_name}, đang lấy QR...")
+            threading.Thread(target=_do_qr_login, args=(bot,), daemon=True).start()
+        else:
+            # Nếu đã có session, chạy listen luôn
+            print(f"[INFO] Đang chạy {acc_name} bằng session...")
+            threading.Thread(target=bot.listen, daemon=True).start()
+            _zalo_live = True
+            
+        bots.append(bot)
+
+    # 4. Chạy các luồng nền (Telegram, Scheduler, Dashboard)
+    if bots:
+        threading.Thread(target=run_scheduler, args=(bots[0],), daemon=True).start()
+        threading.Thread(target=tele_poll, args=(bots[0],), daemon=True).start()
+        threading.Thread(target=dash_refresh, daemon=True).start()
+
+    # 5. Giữ cho process luôn sống
+    while True:
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()
