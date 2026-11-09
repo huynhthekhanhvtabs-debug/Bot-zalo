@@ -1,6 +1,0 @@
-git+https://github.com/Its-VrxxDev/zlapi.git
-flask
-requests
-qrcode[pil]
-Pillow
-psutil
