@@ -1593,7 +1593,7 @@ def main():
 
     cookies_val = cookies if cookies else json.loads(cookies_str)
 
-    bot = LENhanBot(imei=imei_val, session_cookies=cookies_val)
+    bot = LENhanBot("", "", imei=imei_val, session_cookies=cookies_val)
 
     # Background threads
     threading.Thread(target=run_scheduler, args=(bot,), daemon=True).start()
