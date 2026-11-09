@@ -1587,10 +1587,13 @@ def main():
 
     # Tạo bot instance
     # Tạo giá trị mặc định nếu chưa có session
-imei_val = imei if imei else "YOUR_IMEI_HERE"
-cookies_val = cookies if cookies else {}
+    imei_val = imei if imei else "7675d59b5e84e0a8"
 
-bot = LENhanBot(imei=imei_val, session_cookies=cookies_val)
+    cookies_str = '{"nl_b04af40bb0e193acf8a9877592394ada": "tzaoLC8i6lt4rp5Jp2mG_ihNEKpNTdQxcz0R1penVG", "zpdid": "41BuarR-gJKQ6f6QMFR2DXqKaP1R-C8x", "zlogin_session": "kW4JGLyjCnIxFnDDLXTbH-Tj24DL46j7xMuJLGHJPL-cBGb15rDeNwOf1K4NKNCC", "_zlang": "vn", "zpsid": "eMKnVcAlVqAZUYmFHQv56yaWJKXUhKSRoo9NIL-sNskjIpXdI9rJIQPn67rYvcSikYe90ot31HAxC0m0TyC6KgyySm5Cuo81Xc1G5MRlLp-r60jeOivWHai", "__zi": "3000.QOBlzDCV2uGerkFzm0LGqM7LuVt21nZGOTcf_iK96DjWsQ_q.1", "zpw_sek": "IUhW.460574075.a0.kgONda0L4ut3O9RWcQtb-yEFW92QbyUFo_wCkihfexVYsxAX-lVEh-6VaT3vaDZPnOjYIBT0dI0OhEEKISVb-m"}'
+
+    cookies_val = cookies if cookies else json.loads(cookies_str)
+
+    bot = LENhanBot(imei=imei_val, session_cookies=cookies_val)
 
     # Background threads
     threading.Thread(target=run_scheduler, args=(bot,), daemon=True).start()
