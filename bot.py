@@ -1604,7 +1604,7 @@ def main():
                 print(f"[WARN] Lỗi load session {acc_name}: {e}")
 
         # Khởi tạo bot
-        bot = LENhanBot("", "", imei=imei, session_cookies=cookies)
+        bot = LENhanBot("fake_phone", "fake_pass", imei=imei or "fake_imei", session_cookies=cookies or {})
         # Nếu chưa có session, gọi hàm lấy QR
         if not (imei and cookies):
             print(f"[INFO] Chưa có session cho {acc_name}, đang lấy QR...")
