@@ -1618,8 +1618,8 @@ def main():
             # xoá session cũ hỏng
         try:
             os.remove(SESSION_PATH)
-            except:
-                pass
+        except:
+            pass
             _do_qr_login(bot)
             # giữ process sống
             while True: time.sleep(60)
