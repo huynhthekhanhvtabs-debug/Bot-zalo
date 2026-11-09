@@ -1600,7 +1600,7 @@ def main():
     threading.Thread(target=tele_poll,     args=(bot,), daemon=True).start()
     threading.Thread(target=dash_refresh,              daemon=True).start()
 
-    if imei and cookies:
+    if imei and cookies val:
         _zalo_live = True
         tele_text(
             f"✅ <b>{BOT_NAME}</b> online!\n"
@@ -1616,7 +1616,8 @@ def main():
             tele_text(f"⚠️ Session hết hạn: {e}\nĐang lấy QR mới...")
             _zalo_live = False
             # xoá session cũ hỏng
-            try: os.remove(SESSION_PATH)
+        try:
+            os.remove(SESSION_PATH)
             except: pass
             _do_qr_login(bot)
             # giữ process sống
