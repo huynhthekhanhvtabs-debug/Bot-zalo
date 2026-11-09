@@ -2,7 +2,7 @@ services:
   - type: web
     name: bot-make-by-le-nhan
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: chmod +x build.sh && ./build.sh
     startCommand: python bot.py
     envVars:
       - key: PORT
