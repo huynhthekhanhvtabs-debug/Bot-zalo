@@ -1600,12 +1600,12 @@ def main():
     threading.Thread(target=tele_poll,     args=(bot,), daemon=True).start()
     threading.Thread(target=dash_refresh,              daemon=True).start()
 
-    if imei and cookies val:
+    if imei_val and cookies_val:
         _zalo_live = True
         tele_text(
             f"✅ <b>{BOT_NAME}</b> online!\n"
             f"👑 {OWNER_NAME}  |  v{VERSION}\n"
-            f"⏱ Session cũ đã load.",
+            f"🔑 Đăng nhập bằng Cookies thành công.",
             reply_markup=kb_main()
         )
         print("[INFO] Listening (session)...")
